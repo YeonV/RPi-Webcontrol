@@ -12,3 +12,5 @@ node index.js
 ```
 
 Access `http://your-ip:8881` (http://localhost:8881)
+
+You can adjust settings in config.json
