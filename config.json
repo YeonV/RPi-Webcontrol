@@ -1,0 +1,12 @@
+{
+    "port": 8881,
+    "commandsArray": [
+        ["LedFx Status", "systemctl --user status ledfx.service"],
+        ["LedFx Start", "systemctl --user start ledfx.service"],
+        ["LedFx Stop", "systemctl --user stop ledfx.service"],
+        ["LedFx AutoStart", "systemctl --user enable ledfx.service"],
+        ["LedFx Disable AutoStart", "systemctl --user disable ledfx.service"],
+        ["SpotifyD Status", "systemctl --user status spotifyd.service"],
+        ["kill", "sudo fuser -k 8881/tcp"]
+    ]
+}

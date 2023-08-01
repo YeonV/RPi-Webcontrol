@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RPi Web Control</title>
+</head>
+<body style="background-color: #333; color: #fff; padding-top: 60px;">
+    <div style="position: fixed; top: 0; left: 0; right: 0; background-color: #111; text-align: center;">
+        <h2 style="margin: 10px;">RPi WebControl</h2>
+        <div style="position: absolute;top:0 ;right: 0;">
+            <button type="button" onclick="restart()" style="height: 47px;background-color: #111; color: #fff; border: 0; padding: 10px 15px; text-align: left; cursor: pointer">Restart</button>
+        </div>
+    </div>
+    <h2>PulseAudio Control:</h2>
+    <div style="display: flex; align-items: center;">        
+        <input style="width: 200px; margin-right: 10px;" id="volume-slider" type="range" min="0" max="150" step="1" onChange="changeValue(this.value);">
+        <div id="output"></div>
+    </div>
+    <br />
+    <h2>LedFx Control:</h2>
+    <div id="commandsLedFx" style="display: flex; flex-wrap: wrap;"></div>
+    <h2>SpotifyD Control:</h2>
+    <div id="commandsSpotifyd" style="display: flex; flex-wrap: wrap;"></div>
+    <h2>Commands:</h2>
+    <div id="commands" style="display: flex; flex-wrap: wrap;"></div>
+    <h2>Links:</h2>
+    <div id="linksExternal"  style="display: flex; flex-wrap: wrap;"></div>
+    <br />
+    <h2>Terminal:</h2>
+    <iframe style="width: 100%; height: 200px; background-color: #111; color: #fff; font-family: monospace; font-size: .3rem; border-radius: 5px;" frameborder="0" id="command-output" name="command-output"></iframe>    
+    <form action="/command" method="post" target="command-output" style="display: flex; width: 100%; background-color: #111; color: #fff;border-radius: 5px;">
+        <span style="padding: 5px 15px;">&gt;</span>
+        <input autofocus id="command" name="command" type="text" style="flex: 1; background-color: #111; color: #fff; border: 0; outline: 0;" />
+        <button type="submit" style="background-color: transparent; color: #fff; border: 0; padding: 5px 15px;">&#9166;</button>
+    </form>
+</body>
+<script>
+    const linksExternalArray = [
+        ['RaspAP', 'http://' + window.location.hostname],
+        ['LedFx', 'http://' + window.location.hostname + ':8888'],
+    ]
+    function restart(fn) {
+        fetch('/restart').then((r) => r.json())
+    }
+    function ready(fn) {
+    if (document.readyState !== 'loading'){
+        fn();
+    } else {
+        document.addEventListener('DOMContentLoaded', fn);
+    }
+    }
+    let output = document.getElementById('output');
+    let commands = document.getElementById('commands');
+    let commandsLedFx = document.getElementById('commandsLedFx');
+    let commandsSpotifyd = document.getElementById('commandsSpotifyd');
+    let volumeSlider = document.getElementById('volume-slider');
+    let linksExternal = document.getElementById('linksExternal');
+    const runCommand = (command) => {
+        fetch('/command').then((r) => r.json())
+    }
+    ready(function () {
+        fetch('/pa/getvol').then((r) => r.json()).then((vol) => {
+            output.innerHTML = vol.volume
+            volumeSlider.value = vol.volume
+        })
+        fetch('/config').then((r) => r.json()).then(({ commandsArray }) => {
+            commands.innerHTML = commandsArray.filter(l => !l[0].toLowerCase().includes('ledfx') && !l[0].toLowerCase().includes('spotify')).map(l=> { return `
+                <form action="/command" method="post" target="command-output" style="display: flex; margin: 0 5px 5px 0; width: 200px; border-radius: 5px; background-color: #111; color: #fff; cursor: pointer;">
+                    <input value="${l[1]}" id="command" name="command" type="text" style="width: 0px; background-color: #111; color: #fff; border: 0; outline: 0;padding: 0; margin: 0;" />
+                    <button type="submit" style="background-color: transparent; width: 100%; color: #fff; border: 0; padding: 10px 15px; text-align: left; cursor: pointer">${l[0]}</button>
+                </form><br />
+            `}).join('')
+            commandsLedFx.innerHTML = commandsArray.filter(l => l[0].toLowerCase().includes('ledfx')).map(l=> { return `
+                <form action="/command" method="post" target="command-output" style="display: flex; margin: 0 5px 5px 0; width: 200px; border-radius: 5px; background-color: #111; color: #fff; cursor: pointer;">
+                    <input value="${l[1]}" id="command" name="command" type="text" style="width: 0px; background-color: #111; color: #fff; border: 0; outline: 0;padding: 0; margin: 0;" />
+                    <button type="submit" style="background-color: transparent; width: 100%; color: #fff; border: 0; padding: 10px 15px; text-align: left; cursor: pointer">${l[0]}</button>
+                </form><br />
+            `}).join('')
+            commandsSpotifyd.innerHTML = commandsArray.filter(l => l[0].toLowerCase().includes('spotify')).map(l=> { return `
+                <form action="/command" method="post" target="command-output" style="display: flex; margin: 0 5px 5px 0; width: 200px; border-radius: 5px; background-color: #111; color: #fff; cursor: pointer;">
+                    <input value="${l[1]}" id="command" name="command" type="text" style="width: 0px; background-color: #111; color: #fff; border: 0; outline: 0;padding: 0; margin: 0;" />
+                    <button type="submit" style="background-color: transparent; width: 100%; color: #fff; border: 0; padding: 10px 15px; text-align: left; cursor: pointer">${l[0]}</button>
+                </form><br />
+            `}).join('')
+        })
+        
+        linksExternal.innerHTML = linksExternalArray.map(l=>{return `
+        <a href="${l[1]}" target="_blank" style="display: flex; margin: 0 5px 5px 0; width: 170px; border-radius: 5px; background-color: #111; color: #fff; cursor: pointer; padding: 10px 15px; text-decoration: none;">${l[0]}</a><br />
+        `}).join('')
+    }); 
+        
+        function changeValue(newVal) {
+            fetch('/pa/setvol/' + newVal)
+            output.innerHTML = newVal;
+        }
+</script>
+</html>
