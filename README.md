@@ -14,3 +14,5 @@ node index.js
 Access `http://your-ip:8881` (http://localhost:8881)
 
 You can adjust settings in config.json
+
+![image](https://github.com/YeonV/RPi-Webcontrol/assets/28861537/c224be67-66b0-4a81-a9a8-fe9e23b1b6f6)
